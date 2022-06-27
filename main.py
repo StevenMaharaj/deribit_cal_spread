@@ -12,8 +12,8 @@ instrument_names = ['ETH-PERPETUAL','ETH-1JUL22']
 # quotes = Queue(maxsize = 1)
 
 quotes = {
-    'ETH-PERPETUAL': {'bidQ':0.0,'bidP':0.0,'AskQ':0.0,'AskQ':0.0,},
-    'ETH-1JUL22': {'bidQ':0.0,'bidP':0.0,'AskQ':0.0,'AskQ':0.0,},
+    'ETH-PERPETUAL': {'BidQ':0.0,'BidP':0.0,'AskQ':0.0,'AskQ':0.0,},
+    'ETH-1JUL22': {'BidQ':0.0,'BidP':0.0,'AskQ':0.0,'AskQ':0.0,},
 }
 
 positions = {
@@ -31,7 +31,7 @@ position_stream = Thread(target=deribit_position_stream.start_stream)
 position_stream.daemon = True
 position_stream.start()
 
-sleep(2)
+sleep(10)
 
 while True:
     sleep(0.1)

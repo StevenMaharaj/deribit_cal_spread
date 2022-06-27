@@ -1,12 +1,9 @@
 from tempfile import tempdir
 from turtle import position
-from matplotlib.pyplot import get
-from regex import D
 import websockets
 import asyncio
 import json
 from queue import Queue
-import requests
 from quote_stream import QuoteStream
 from dataclasses import dataclass
 from typing import List, Dict
