@@ -1,4 +1,3 @@
-from symtable import Symbol
 import websockets
 import asyncio
 import json
@@ -7,11 +6,13 @@ import requests
 from quote_stream import QuoteStream
 from dataclasses import dataclass
 from typing import List,Dict
+from config import ws_base
+
 
 @dataclass
 class DeribitQuoteStream(QuoteStream):
     instrument_names: List[str]
-    quotes: Dict[str,List[float]]
+    quotes: Dict[str,Dict[str,float]]
     
 
     def __post_init__(self):
@@ -26,17 +27,17 @@ class DeribitQuoteStream(QuoteStream):
 
 
     async def handle_messages(self):
-        async with websockets.connect('wss://www.deribit.com/ws/api/v2') as websocket:
+        async with websockets.connect(f'{ws_base}/ws/api/v2') as websocket:
             await websocket.send(json.dumps(self.msg))
             await websocket.recv()
             while websocket.open:
                 response: str = await websocket.recv()
                 temp = json.loads(response)
                 symbol = temp['params']['data']['instrument_name']
-                self.quotes[symbol][0] = temp['params']['data']["best_bid_amount"]
-                self.quotes[symbol][1] = temp['params']['data']["best_bid_price"]
-                self.quotes[symbol][2] = temp['params']['data']["best_ask_price"]
-                self.quotes[symbol][3] = temp['params']['data']["best_ask_amount"]
+                self.quotes[symbol]['BidQ'] = temp['params']['data']["best_bid_amount"]
+                self.quotes[symbol]['BidP'] = temp['params']['data']["best_bid_price"]
+                self.quotes[symbol]['AskP'] = temp['params']['data']["best_ask_price"]
+                self.quotes[symbol]['AskQ'] = temp['params']['data']["best_ask_amount"]
 
     def start_stream(self):
         loop = asyncio.new_event_loop()
