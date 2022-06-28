@@ -1,7 +1,6 @@
-from email.quoprimime import quote
+
 from threading import Thread
 
-from aiohttp import TraceDnsCacheHitParams
 
 from quote_stream_deribit import DeribitQuoteStream
 from position_stream_deribit import DeribitPositionStream
