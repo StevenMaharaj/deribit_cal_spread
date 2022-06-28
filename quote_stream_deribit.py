@@ -1,7 +1,6 @@
 import websockets
 import asyncio
 import json
-from queue import Queue
 from quote_stream import QuoteStream
 from dataclasses import dataclass
 from typing import List,Dict

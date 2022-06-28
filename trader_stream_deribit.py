@@ -3,53 +3,66 @@ import websockets
 import asyncio
 import json
 from dataclasses import dataclass
-from typing import List,Dict
-from config import ws_base
+from typing import List, Dict
+from config import client_id, client_secret, ws_base
 
 
 @dataclass
-class DeribitTradeStream(QuoteStream):
+class MarketOrder:
+    is_buy: bool
+    symbol: str
+    size: int
+
+
+@dataclass
+class DeribitTradeStream:
     # instrument_names: List[str]
-    Trade_queue: Queue
-    
+    Trade_queue: Queue[MarketOrder]
 
     def __post_init__(self):
-        pass
-        
-
+        self.msgAuth = \
+            {
+                "jsonrpc": "2.0",
+                "id": 9929,
+                "method": "public/auth",
+                "params": {
+                    "grant_type": "client_credentials",
+                    "client_id": f"{client_id}",
+                    "client_secret": f"{client_secret}"
+                }
+            }
 
     def limit(websocket):
-        pass    
+        pass
 
-    def market(self,websocket,symbol:str,is_buy:bool,size:int):
+    async def send_market_order(self, websocket, symbol: str, is_buy: bool, size: int):
         msg = \
-        {
-        "jsonrpc" : "2.0",
-        "id" : 5275,
-        "method" : "private/buy" if is_buy else "private/sell",
-        "params" : {
-            "instrument_name" : symbol,
-            "amount" : size,
-            "type" : "market",
-            "label" : "market0000234"
-        }
-        }
-        
+            {
+                "jsonrpc": "2.0",
+                "id": 5275,
+                "method": "private/buy" if is_buy else "private/sell",
+                "params": {
+                    "instrument_name": symbol,
+                    "amount": size,
+                    "type": "market",
+                    "label": "market0000234"
+                }
+            }
 
+        await websocket.send(json.dumps(msg))
+        await websocket.recv()
+        
 
     async def handle_messages(self):
         async with websockets.connect(f'{ws_base}/ws/api/v2') as websocket:
-            await self.init_quotes(websocket)
-            await websocket.send(json.dumps(self.msg))
-            await websocket.recv()
+            await websocket.send(json.dumps(self.msgAuth))
+            self.auth_info: Dict = await websocket.recv()
             while websocket.open:
-                response: str = await websocket.recv()
-                temp = json.loads(response)
-                symbol = temp['params']['data']['instrument_name']
-                self.quotes[symbol]['BidQ'] = temp['params']['data']["best_bid_amount"]
-                self.quotes[symbol]['BidP'] = temp['params']['data']["best_bid_price"]
-                self.quotes[symbol]['AskP'] = temp['params']['data']["best_ask_price"]
-                self.quotes[symbol]['AskQ'] = temp['params']['data']["best_ask_amount"]
+                market_order = self.Trade_queue.get()
+                await self.send_market_order(websocket,
+                                       market_order.symbol,
+                                       market_order.is_buy,
+                                       market_order.size)
 
     def start_stream(self):
         loop = asyncio.new_event_loop()

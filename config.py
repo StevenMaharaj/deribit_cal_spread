@@ -2,7 +2,7 @@ import json
 
 
 def get_api_key(account_name: str, is_production: bool) -> tuple[str]:
-    with open("../accounts/deribit.json") as f:
+    with open("deribit.json") as f:
         accounts: dict = json.load(f)
         if is_production:
             key = accounts['Production'][account_name]['client_id']
